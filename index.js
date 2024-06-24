@@ -1,26 +1,51 @@
-import * as Carousel from "./Carousel.js";
-import axios from "axios";
+import * as Carousel from './Carousel.js';
+import axios from 'axios';
 
-// The breed selection input element.
-const breedSelect = document.getElementById("breedSelect");
-// The information section div element.
-const infoDump = document.getElementById("infoDump");
-// The progress bar div element.
-const progressBar = document.getElementById("progressBar");
-// The get favourites button element.
-const getFavouritesBtn = document.getElementById("getFavouritesBtn");
+const API_KEY =
+  'live_GQbeJp23hPbmUCJKMKaJGWX8GMp537SBEKmT3129c9I20cAE6SVQ63cbccBJ3N19';
 
-// Step 0: Store your API key here for reference and easy access.
-const API_KEY = "";
+document.addEventListener('DOMContentLoaded', () => {
+  // The breed selection input element.
+  const breedSelect = document.getElementById('breedSelect');
+  // The information section div element.
+  const infoDump = document.getElementById('infoDump');
+  // The progress bar div element.
+  const progressBar = document.getElementById('progressBar');
+  // The get favourites button element.
+  const getFavouritesBtn = document.getElementById('getFavouritesBtn');
 
-/**
- * 1. Create an async function "initialLoad" that does the following:
- * - Retrieve a list of breeds from the cat API using fetch().
- * - Create new <options> for each of these breeds, and append them to breedSelect.
- *  - Each option should have a value attribute equal to the id of the breed.
- *  - Each option should display text equal to the name of the breed.
- * This function should execute immediately.
- */
+  /**
+   * 1. Create an async function "initialLoad" that does the following:
+   * - Retrieve a list of breeds from the cat API using fetch().
+   * - Create new <options> for each of these breeds, and append them to breedSelect.
+   *  - Each option should have a value attribute equal to the id of the breed.
+   *  - Each option should display text equal to the name of the breed.
+   * This function should execute immediately.
+   */
+
+  const initialLoad = async () => {
+    try {
+      const url = `https://api.thecatapi.com/v1/breeds`;
+      const res = await fetch(url);
+      const cats = await res.json();
+      createOption(cats);
+      console.log(cats);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const createOption = (cats) => {
+    cats.forEach((cat) => {
+      const option = document.createElement('option');
+      option.setAttribute('value', cat.id);
+      option.textContent = cat.name;
+      breedSelect.appendChild(option);
+    });
+  };
+
+  initialLoad();
+});
 
 /**
  * 2. Create an event handler for breedSelect that does the following:
