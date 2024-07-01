@@ -42,7 +42,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const url = `https://api.thecatapi.com/v1/images/search?limit=20&breed_ids=${id}&api_key=${API_KEY}`;
       const res = await fetch(url);
       const breeds = await res.json();
-      console.log('Breed Info:', breeds); // Log the response
+      console.log('Breed Info:', breeds);
       updateCarousel(breeds);
       updateInfoDump(breeds[0].breeds[0]);
     } catch (error) {
