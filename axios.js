@@ -61,7 +61,7 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
       const { data: breeds } = await axios.get(`/images/search`, {
         params: {
-          limit: 20,
+          limit: 10,
           breed_ids: id,
         },
       });
