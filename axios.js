@@ -102,7 +102,6 @@ document.addEventListener('DOMContentLoaded', () => {
 // Add Axios interceptors
 axios.interceptors.request.use(
   (config) => {
-    console.log('Request started at:', new Date().toISOString());
     config.metadata = { startTime: new Date() };
     return config;
   },
@@ -115,8 +114,7 @@ axios.interceptors.response.use(
   (response) => {
     const endTime = new Date();
     const duration = endTime - response.config.metadata.startTime;
-    console.log('Request ended at:', endTime.toISOString());
-    console.log('Request duration:', duration, 'ms');
+
     return response;
   },
   (error) => {
