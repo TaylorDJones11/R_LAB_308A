@@ -5,23 +5,10 @@ const API_KEY =
   'live_GQbeJp23hPbmUCJKMKaJGWX8GMp537SBEKmT3129c9I20cAE6SVQ63cbccBJ3N19';
 
 document.addEventListener('DOMContentLoaded', () => {
-  // The breed selection input element.
   const breedSelect = document.getElementById('breedSelect');
-  // The information section div element.
   const infoDump = document.getElementById('infoDump');
-  // The progress bar div element.
   const progressBar = document.getElementById('progressBar');
-  // The get favourites button element.
   const getFavouritesBtn = document.getElementById('getFavouritesBtn');
-
-  /**
-   * 1. Create an async function "initialLoad" that does the following:
-   * - Retrieve a list of breeds from the cat API using fetch().
-   * - Create new <options> for each of these breeds, and append them to breedSelect.
-   *  - Each option should have a value attribute equal to the id of the breed.
-   *  - Each option should display text equal to the name of the breed.
-   * This function should execute immediately.
-   */
 
   const initialLoad = async () => {
     try {
@@ -29,7 +16,6 @@ document.addEventListener('DOMContentLoaded', () => {
       const res = await fetch(url);
       const cats = await res.json();
       createOption(cats);
-      console.log(cats);
     } catch (error) {
       console.log(error);
     }
@@ -45,22 +31,50 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   initialLoad();
-});
 
-/**
- * 2. Create an event handler for breedSelect that does the following:
- * - Retrieve information on the selected breed from the cat API using fetch().
- *  - Make sure your request is receiving multiple array items!
- *  - Check the API documentation if you're only getting a single object.
- * - For each object in the response array, create a new element for the carousel.
- *  - Append each of these new elements to the carousel.
- * - Use the other data you have been given to create an informational section within the infoDump element.
- *  - Be creative with how you create DOM elements and HTML.
- *  - Feel free to edit index.html and styles.css to suit your needs, but be careful!
- *  - Remember that functionality comes first, but user experience and design are important.
- * - Each new selection should clear, re-populate, and restart the Carousel.
- * - Add a call to this function to the end of your initialLoad function above to create the initial carousel.
- */
+  breedSelect.addEventListener('change', async (e) => {
+    const breedID = e.target.value;
+    await fetchBreedInfo(breedID);
+  });
+
+  const fetchBreedInfo = async (id) => {
+    try {
+      const url = `https://api.thecatapi.com/v1/images/search?limit=20&breed_ids=${id}&api_key=${API_KEY}`;
+      const res = await fetch(url);
+      const breeds = await res.json();
+      console.log('Breed Info:', breeds); // Log the response
+      updateCarousel(breeds);
+      updateInfoDump(breeds[0].breeds[0]);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const updateCarousel = (breeds) => {
+    Carousel.clear();
+    breeds.forEach((item) => {
+      const carouselItem = Carousel.createCarouselItem(
+        item.url,
+        item.breeds[0].name,
+        item.id
+      );
+      Carousel.appendCarousel(carouselItem);
+    });
+    Carousel.start();
+  };
+
+  const updateInfoDump = (breed) => {
+    infoDump.innerHTML = '';
+    const breedInfo = `
+      <h2>${breed.name}</h2>
+      <p>${breed.description}</p>
+      <p><strong>Temperament:</strong> ${breed.temperament}</p>
+      <p><strong>Origin:</strong> ${breed.origin}</p>
+      <p><strong>Life span:</strong> ${breed.life_span} years</p>
+    `;
+    infoDump.innerHTML = breedInfo;
+  };
+});
 
 /**
  * 3. Fork your own sandbox, creating a new one named "JavaScript Axios Lab."
