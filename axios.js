@@ -37,7 +37,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const { data: cats } = await axios.get('/breeds');
       createOption(cats);
     } catch (error) {
-      console.log(error);
+      console.error('Error loading breeds', error);
     }
   };
 
@@ -64,13 +64,13 @@ document.addEventListener('DOMContentLoaded', () => {
           limit: 10,
           breed_ids: id,
         },
-        onDownloadProgress: updateProgess,
+        onDownloadProgress: updateProgress,
       });
       console.log('Breed Info:', breeds);
       updateCarousel(breeds);
       updateInfoDump(breeds[0].breeds[0]);
     } catch (error) {
-      console.log(error);
+      console.error('Error fetching breed info', error);
     }
   };
 
@@ -98,78 +98,85 @@ document.addEventListener('DOMContentLoaded', () => {
     `;
     infoDump.innerHTML = breedInfo;
   };
+
+  const updateProgress = (progressEvent) => {
+    const percentCompleted = Math.round(
+      (progressEvent.loaded * 100) / progressEvent.total
+    );
+    progressBar.style.width = `${percentCompleted}%`;
+    console.log('Progress Event', progressEvent);
+  };
+
+  // Add Axios interceptors
+  axios.interceptors.request.use(
+    (config) => {
+      console.log('Request started at:', new Date().toISOString());
+      config.metadata = { startTime: new Date() };
+      document.body.style.cursor = 'progress';
+      if (progressBar) {
+        progressBar.style.width = '0%'; // Reset progress bar
+      }
+      return config;
+    },
+    (error) => {
+      return Promise.reject(error);
+    }
+  );
+
+  axios.interceptors.response.use(
+    (response) => {
+      const endTime = new Date();
+      const duration = endTime - response.config.metadata.startTime;
+      console.log('Request ended at:', endTime.toISOString());
+      console.log('Request duration:', duration, 'ms');
+      document.body.style.cursor = 'default';
+      return response;
+    },
+    (error) => {
+      document.body.style.cursor = 'default';
+      return Promise.reject(error);
+    }
+  );
+
+  // Function to get and display favourite images
+  const getFavourites = async () => {
+    try {
+      const { data: favourites } = await axios.get('/favourites');
+      const favouriteImages = favourites.map((fav) => ({
+        url: fav.image.url,
+        breeds: fav.image.breeds,
+      }));
+      updateCarousel(favouriteImages);
+    } catch (error) {
+      console.error('Error fetching favourites', error);
+    }
+  };
+
+  getFavouritesBtn.addEventListener('click', getFavourites);
 });
 
-const updateProgess = (progressEvent) => {
-  const percentCompleted = Math.round(
-    (progressEvent.loaded * 100) / progressEvent.total
-  );
-  progressBar.style.width = `${percentCompleted}`;
-  console.log('Porgress Event', progressEvent);
-};
-
-// Add Axios interceptors
-axios.interceptors.request.use(
-  (config) => {
-    config.metadata = { startTime: new Date() };
-    document.body.style.cursor = 'progress';
-    progressBar.style.width = '0%';
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
-  }
-);
-
-axios.interceptors.response.use(
-  (response) => {
-    const endTime = new Date();
-    const duration = endTime - response.config.metadata.startTime;
-    document.body.style.cursor = 'default';
-    return response;
-  },
-  (error) => {
-    document.body.style.cursor = 'default';
-    return Promise.reject(error);
-  }
-);
-
-/**
- * 6. Next, we'll create a progress bar to indicate the request is in progress.
- * - The progressBar element has already been created for you.
- *  - You need only to modify its "width" style property to align with the request progress.
- * - In your request interceptor, set the width of the progressBar element to 0%.
- *  - This is to reset the progress with each request.
- * - Research the axios onDownloadProgress config option.
- * - Create a function "updateProgress" that receives a ProgressEvent object.
- *  - Pass this function to the axios onDownloadProgress config option in your event handler.
- * - console.log your ProgressEvent object within updateProgess, and familiarize yourself with its structure.
- *  - Update the progress of the request using the properties you are given.
- * - Note that we are not downloading a lot of data, so onDownloadProgress will likely only fire
- *   once or twice per request to this API. This is still a concept worth familiarizing yourself
- *   with for future projects.
- */
-
-/**
- * 7. As a final element of progress indication, add the following to your axios interceptors:
- * - In your request interceptor, set the body element's cursor style to "progress."
- * - In your response interceptor, remove the progress cursor style from the body element.
- */
-/**
- * 8. To practice posting data, we'll create a system to "favourite" certain images.
- * - The skeleton of this function has already been created for you.
- * - This function is used within Carousel.js to add the event listener as items are created.
- *  - This is why we use the export keyword for this function.
- * - Post to the cat API's favourites endpoint with the given ID.
- * - The API documentation gives examples of this functionality using fetch(); use Axios!
- * - Add additional logic to this function such that if the image is already favourited,
- *   you delete that favourite using the API, giving this function "toggle" functionality.
- * - You can call this function by clicking on the heart at the top right of any image.
- */
+// Favourite function
 export async function favourite(imgId) {
-  // your code here
-}
+  try {
+    // Check if the image is already a favourite
+    const { data: favourites } = await axios.get('/favourites');
+    const favourite = favourites.find((fav) => fav.image_id === imgId);
 
+    if (favourite) {
+      // If the image is already a favourite, delete it
+      await axios.delete(`/favourites/${favourite.id}`);
+      console.log(`Image ${imgId} removed from favourites`);
+    } else {
+      // If the image is not a favourite, add it
+      await axios.post('/favourites', {
+        image_id: imgId,
+      });
+      console.log(`Image ${imgId} added to favourites`);
+    }
+  } catch (error) {
+    console.error('Error toggling favourite', error);
+  }
+}
 /**
  * 9. Test your favourite() function by creating a getFavourites() function.
  * - Use Axios to get all of your favourites from the cat API.
