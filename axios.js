@@ -66,7 +66,7 @@ document.addEventListener('DOMContentLoaded', () => {
         },
         onDownloadProgress: updateProgress,
       });
-      console.log('Breed Info:', breeds);
+
       updateCarousel(breeds);
       updateInfoDump(breeds[0].breeds[0]);
     } catch (error) {
@@ -79,7 +79,7 @@ document.addEventListener('DOMContentLoaded', () => {
     breeds.forEach((item) => {
       const carouselItem = Carousel.createCarouselItem(
         item.url,
-        item.breeds[0].name,
+        item.breeds.name,
         item.id
       );
       Carousel.appendCarousel(carouselItem);
@@ -110,7 +110,6 @@ document.addEventListener('DOMContentLoaded', () => {
   // Add Axios interceptors
   axios.interceptors.request.use(
     (config) => {
-      console.log('Request started at:', new Date().toISOString());
       config.metadata = { startTime: new Date() };
       document.body.style.cursor = 'progress';
       if (progressBar) {
@@ -127,8 +126,7 @@ document.addEventListener('DOMContentLoaded', () => {
     (response) => {
       const endTime = new Date();
       const duration = endTime - response.config.metadata.startTime;
-      console.log('Request ended at:', endTime.toISOString());
-      console.log('Request duration:', duration, 'ms');
+
       document.body.style.cursor = 'default';
       return response;
     },
